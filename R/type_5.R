@@ -50,6 +50,10 @@ setMethod("dim","spin",function(x){ nrow(rn(x)) })
 setMethod("show", "spin", function(object){spin_show(object)})
 
 `spin_show` <- function(x){
+     if(length(x)==0){
+     cat("Null vector of", description(x,plural=TRUE),"\n")
+     return((x))
+  }
   cat("Vector of",description(x,plural=TRUE), "with entries\n")
   x <- as(x,"matrix")
   rownames(x) <- paste("[",seq_len(nrow(x))-1,"]",sep="")
@@ -63,6 +67,11 @@ setMethod("show", "spin", function(object){spin_show(object)})
 
   jj <- capture.output(x)
   n <- nrow(x)
+  if(length(jj) > n+1){
+      print(x)
+      return(x)
+  }
+
   substr(jj[2],1,3) <- " r "
   if(sum(o) < (n-1)){
       jj <- c(
@@ -140,7 +149,7 @@ setMethod("show", "spin", function(object){spin_show(object)})
 }
 
 `spin_power_numeric` <- function(e1,e2){
-  stop("not yet implemented (it makes sense but I have not got round to implementing it yet")
+  stop("not yet implemented (it makes sense but I have not got round to implementing it yet)")
   n <- e2  # yes it's redundant but using e2 for n drives me nuts
   if(length(n)==1){
     return(spin_power_single_n(e1,n))
@@ -156,8 +165,7 @@ setMethod("Arith",signature(e1 = "spin", e2="missing"),
             switch(.Generic,
                    "+" = e1,
                    "-" = spin_negative(e1),
-                   stop(paste("Unary operator", .Generic,
-                              "not allowed on spin objects"))
+                   stop(gettextf("unary operator %s not defined for spin objects", dQuote(.Generic)))
                    )
           } )
 
@@ -171,7 +179,7 @@ setMethod("Arith",signature(e1 = "spin", e2="spin"),
          "*" = spin_prod_spin(e1,  e2),
          "/" = stop("1/spin not defined"),
          "^" = stop("x^spin not defined"),
-         stop(paste("binary operator \"", .Generic, "\" not defined for spin objects"))
+         stop(gettextf("binary operator %s not defined for spin objects", dQuote(.Generic)))
          )})
 
 setMethod("Arith",signature(e1 = "spin", e2="numeric"),
@@ -182,7 +190,7 @@ setMethod("Arith",signature(e1 = "spin", e2="numeric"),
          "*" = spin_prod_numeric(e1,e2),
          "/" = spin_prod_numeric(e1,1/e2),
          "^" = spin_power_numeric(e1,  e2),
-         stop(paste("binary operator \"", .Generic, "\" not defined for onions"))
+         stop(gettextf("binary operator %s not defined for spin objects", dQuote(.Generic)))
          )})
 
 setMethod("Arith",signature(e1 = "numeric", e2="spin"),
@@ -193,7 +201,7 @@ setMethod("Arith",signature(e1 = "numeric", e2="spin"),
          "*" = spin_prod_numeric(e2,e1),
          "/" = stop("1/spin not defined"),
          "^" = stop("x^spin not defined"),
-         stop(paste("binary operator \"", .Generic, "\" not defined for onions"))
+         stop(gettextf("binary operator %s not defined for spin objects", dQuote(.Generic)))
          )})
 
 

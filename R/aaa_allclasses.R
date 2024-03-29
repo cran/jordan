@@ -33,7 +33,7 @@ setClassUnion("jordan_special", # everything except albert
               c("spin","real_symmetric_matrix", "complex_herm_matrix",
                 "quaternion_herm_matrix"))
 
-setClassUnion("index", members =  c("numeric", "logical", "character")) # taken from the Matrix package.
+# setClassUnion("index", members =  c("numeric", "logical", "character")) # taken from the Matrix package.
 
 `is.jordan` <- function(x){is(x,"jordan")}
 `as.jordan` <- function(x,class){
@@ -50,14 +50,19 @@ setClassUnion("index", members =  c("numeric", "logical", "character")) # taken 
 }
 
 `as.identity` <- function(x){
-    switch(as.character(class(x)),
-           real_symmetric_matrix  = as.jordan(kronecker(   rsm1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x),
-           complex_herm_matrix    = as.jordan(kronecker(   chm1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x),
-           quaternion_herm_matrix = as.jordan(kronecker(   qhm1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x),
-           albert                 = as.jordan(kronecker(albert1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x),
-           spin                   = spin(a=1+0*r1(x),V=rn(x)*0),
-           stop("not recognised")
-           )
+           if(is.real_symmetric_matrix(x)){
+               return(as.jordan(kronecker(   rsm1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x))
+           } else if(is.complex_herm_matrix(x)){
+               return(as.jordan(kronecker(   chm1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x))
+           } else if(is.quaternion_herm_matrix(x)){
+               return(as.jordan(kronecker(   qhm1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x))
+           } else if(is.albert(x)){
+               return(as.jordan(kronecker(albert1_to_vec(diag(nrow=nrow(x[1,drop=TRUE]))),t(rep(1,length(x)))),x))
+           } else if(is.spin(x)){
+               return(spin(a=1+0*r1(x),V=rn(x)*0))
+           } else {
+               stop("not recognised")
+           }
 }
 
 setAs(from="jordan",to="matrix",def=function(from){from@x})
@@ -86,11 +91,15 @@ setReplaceMethod("names","jordan",
   switch(.Generic,
          "==" =  out,
          "!=" = !out,
-         stop(paste("comparision operator \"", .Generic, "\" not defined for jordans"))
+         stop(gettextf("comparison operator %s not defined for albert objects", dQuote(.Generic)))
          )
 }
 
-`is.zero` <- function(e1,e2=0){
+
+setGeneric("is.zero",function(x){standardGeneric("is.zero")})
+setMethod("is.zero",signature(x="jordan"),function(x){is_zero_jordan(x)})
+
+`is_zero_jordan` <- function(e1,e2=0){
   stopifnot(is.numeric(e2))
   stopifnot(length(e2)==1)
   stopifnot(round(e2)==e2)
@@ -99,22 +108,22 @@ setReplaceMethod("names","jordan",
 }
 
 `jordan_compare_numeric` <- function(e1,e2){
-   out <- is.zero(e1,e2)  # the meat
+   out <- is_zero_jordan(e1,e2)  # the meat
 
    switch(.Generic,
           "==" =  out,
           "!=" = !out,
-          stop(paste("comparision operator \"", .Generic, "\" not defined for jordans"))
+          stop(gettextf("comparison operator %s not defined for jordan objects", dQuote(.Generic)))
           )
 }
 
 `numeric_compare_jordan` <- function(e1,e2){
-   out <- is.zero(e2,e1) # the meat; NB e1,e2 swapped WRT jordan_compare_numeric()
+   out <- is_zero_jordan(e2,e1) # the meat; NB e1,e2 swapped WRT jordan_compare_numeric()
 
    switch(.Generic,
           "==" =  out,
           "!=" = !out,
-          stop(paste("comparision operator \"", .Generic, "\" not defined for jordans"))
+          stop(gettextf("comparison operator %s not defined for jordan objects", dQuote(.Generic)))
           )
 }
 
@@ -197,15 +206,15 @@ setReplaceMethod("[",signature(x="jordan_matrix",i="index",j="missing",value="nu
 }
 
 `description` <- function(x,plural=FALSE){
-  if(class(x) == "real_symmetric_matrix"){
+  if(is.real_symmetric_matrix(x)){
     out <- ifelse(plural,"real symmetric matrices","real symmetric matrix")
-  } else if (class(x) == "complex_herm_matrix"){
+  } else if (is.complex_herm_matrix(x)){
     out <- ifelse(plural,"complex Hermitian matrices","complex Hermitian matrix")
-  } else if (class(x) == "quaternion_herm_matrix"){
+  } else if (is.quaternion_herm_matrix(x)){
     out <- ifelse(plural,"quaternionic Hermitian matrices","quaternionic Hermitian matrix")
-  } else if (class(x) == "albert"){
+  } else if (is.albert(x)){
     out <- ifelse(plural,"Albert matrices","Albert matrix")
-  } else if (class(x) == "spin"){
+  } else if (is.spin(x)){
     out <- ifelse(plural,"spin objects","spin object")
   }  else {
     stop("not recognised")
@@ -216,6 +225,10 @@ setReplaceMethod("[",signature(x="jordan_matrix",i="index",j="missing",value="nu
 setMethod("show", "jordan_matrix", function(object){jordan_matrix_show(object)})
 
 `jordan_matrix_show` <- function(x){
+ if(length(x)==0){
+     cat("Null vector of",description(x,plural=TRUE),"\n")
+     return((x))
+  }
   cat("Vector of",description(x,plural=TRUE), "with entries\n")
   x <- as(x,"matrix")
   if(is.null(colnames(x))){
@@ -227,13 +240,17 @@ setMethod("show", "jordan_matrix", function(object){jordan_matrix_show(object)})
   
   jj <- capture.output(x)
   n <- nrow(x)
-  if(sum(o) < n){
-      jj <- c(jj[seq_len(o[1]+1)],paste(rep(".",nchar(jj[1])),collapse=""),jj[(n-o[2]):(n+1)])
+  if(length(jj) > n+1){
+      print(x)
+  } else {
+      if(sum(o) < n){
+          jj <- c(jj[seq_len(o[1]+1)],paste(rep(".",nchar(jj[1])),collapse=""),jj[(n-o[2]):(n+1)])
+      }
+      for(i in jj){
+          cat(paste(i,"\n"))
+      }
   }
-  for(i in jj){
-    cat(paste(i,"\n"))
-  }
-  return(x)
+ return(x)
 }
 
 conc_pair <- function(x,y){as.jordan(cbind(as.matrix(x),as.matrix(y)),x)}
@@ -267,3 +284,5 @@ setMethod("c","jordan",function(x,...){
  
 
 setGeneric("as.list")
+
+setMethod("nrow","jordan",function(x){nrow(as.matrix(x))})

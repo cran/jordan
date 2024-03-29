@@ -1,5 +1,7 @@
 \name{random}
+\alias{random}
 \alias{ralbert}
+\alias{rjordan}
 \alias{rrsm}
 \alias{rchm}
 \alias{rqhm}
@@ -10,7 +12,7 @@
 ralbert(n=3)
 rrsm(n=3, d=5)
 rchm(n=3, d=5)
-rqhm(n=3,d=5)
+rqhm(n=3, d=5)
 rspin(n=3, d=5)
 }
 \arguments{

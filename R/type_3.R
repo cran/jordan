@@ -3,7 +3,7 @@
 `quaternion_herm_matrix` <- function(M){new("quaternion_herm_matrix",x=cbind(M))}  # this is the only place new("real_symmetric_matrix",...) is called
 `is.quaternion_herm_matrix` <- function(x){inherits(x,"quaternion_herm_matrix")}
 
-`r_to_n_qhm` <- function(r){sqrt(1+8*r)/4}
+`r_to_n_qhm` <- function(r){(1+sqrt(1+8*r))/4}
 `n_to_r_qhm` <- function(n){n*(2*n-1)}
 
 `is_ok_qhm` <- function(r){ # 'r' = number of rows in [rowwise] matrix
@@ -114,7 +114,7 @@ setMethod("as.1matrix","quaternion_herm_matrix",function(x,drop=TRUE){
          "*" = qhm_prod_qhm(e1, e2),
          "/" = qhm_prod_qhm(e1, qhm_inverse(e2)), # fails
          "^" = stop("qhm^qhm not defined"),
-         stop(paste("binary operator \"", .Generic, "\" not defined for qhm"))
+         stop(gettextf("binary operator %s not defined for qhm objects", dQuote(.Generic)))
          )
 }
 
@@ -125,7 +125,7 @@ setMethod("as.1matrix","quaternion_herm_matrix",function(x,drop=TRUE){
          "*" = jordan_prod_numeric(e1, e2),
          "/" = jordan_prod_numeric(e1, 1/e2),
          "^" = qhm_power_numeric(e1, e2),
-         stop(paste("binary operator \"", .Generic, "\" not defined for qhm"))
+         stop(gettextf("binary operator %s not defined for qhm objects", dQuote(.Generic)))
          )
 }
 
@@ -136,7 +136,7 @@ setMethod("as.1matrix","quaternion_herm_matrix",function(x,drop=TRUE){
          "*" = jordan_prod_numeric(e2, e1),
          "/" = jordan_prod_numeric(qhm_inverse(e2),e1),
          "^" = jordan_power_jordan(e2, e1),
-         stop(paste("binary operator \"", .Generic, "\" not defined for qhm"))
+         stop(gettextf("binary operator %s not defined for qhm objects", dQuote(.Generic)))
          )
 }
 
@@ -145,8 +145,7 @@ setMethod("Arith",signature(e1 = "quaternion_herm_matrix", e2="missing"),
             switch(.Generic,
                    "+" = e1,
                    "-" = jordan_negative(e1),
-                   stop(paste("Unary operator", .Generic,
-                              "not allowed on qhm objects"))
+                   stop(gettextf("unary operator %s not defined for qhm objects", dQuote(.Generic)))
                    )
           } )
 
