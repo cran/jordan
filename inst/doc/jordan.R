@@ -1,6 +1,11 @@
 ## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
+options(rmarkdown.html_vignette.check_title = FALSE)
 library("jordan")
+set.seed(0)
+
+## ----out.width='20%', out.extra='style="float:right; padding:10px"',echo=FALSE----
+knitr::include_graphics(system.file("help/figures/jordan.png", package = "jordan"))
 
 ## -----------------------------------------------------------------------------
 x <- rrsm()  # "Random Real Symmetric Matrix"

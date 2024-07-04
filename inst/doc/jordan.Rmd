@@ -12,20 +12,20 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(rmarkdown.html_vignette.check_title = FALSE)
 library("jordan")
+set.seed(0)
 ```
 
-<p style="text-align: right;">
-![](`r system.file("help/figures/jordan.png", package = "jordan")`){width=10%}
-</p>
-
-
-# Jordan algebras
-
+```{r out.width='20%', out.extra='style="float:right; padding:10px"',echo=FALSE}
+knitr::include_graphics(system.file("help/figures/jordan.png", package = "jordan"))
+```
 To cite the `jordan` package in publications please use
-[@hankin2023_jordan].  A _Jordan algebra_ is a non-associative algebra
-over the reals with a bilinear multiplication that satisfies the
-following identities:
+@hankin2023_jordan.  Jordan algebras were originally introduced by
+Pascual Jordan in 1933 as an attempt to axiomatize observables in
+quantum mechanics.  Formally, a _Jordan algebra_ is a non-associative
+algebra over the reals with a bilinear multiplication that satisfies
+the following identities:
 
 $$xy=yx$$
 
@@ -33,7 +33,7 @@ $$(xy)(xx)=x(y(xx))$$
 
 (the second identity is known as the Jordan identity).  In literature,
 multiplication is usually indicated by juxtaposition but one sometimes
-sees $x\circ y$.  Package idiom is to use an asterisk, as in `x*y`.
+sees $x\bullet y$.  Package idiom is to use an asterisk, as in `x*y`.
 Following @mccrimmon1978, there are five types of Jordan algebras:
 
 * *type 1*: Real symmetric matrices, class `real_symmetric_matrix`,
@@ -84,7 +84,7 @@ x + 100
 
 (the last line is motivated by analogy with `M + x`, for `M` a matrix
 and `x` a scalar). Jordan objects may be multiplied using the rule
-$x\circ y=(xy+yx)/2$:
+$x\bullet y=(xy+yx)/2$:
 
 ```{r}
 x*y
